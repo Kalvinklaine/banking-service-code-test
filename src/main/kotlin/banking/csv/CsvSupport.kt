@@ -6,16 +6,7 @@ internal object CsvSupport {
     private val moneyPattern = Regex("-?[0-9]+(?:\\.[0-9]{1,2})?")
 
     fun fields(line: String, expectedCount: Int, lineNumber: Int): List<String> {
-        val fields = buildList {
-            var fieldStart = 0
-            line.forEachIndexed { index, character ->
-                if (character == ',') {
-                    add(line.substring(fieldStart, index))
-                    fieldStart = index + 1
-                }
-            }
-            add(line.substring(fieldStart))
-        }
+        val fields = line.split(',')
         if (fields.size != expectedCount || fields.any(String::isEmpty)) {
             throw CsvInputException(lineNumber, "Expected exactly $expectedCount non-empty fields")
         }

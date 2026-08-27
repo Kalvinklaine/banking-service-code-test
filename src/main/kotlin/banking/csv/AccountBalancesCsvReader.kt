@@ -8,6 +8,11 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.LinkedHashMap
 
+/**
+ * Reads opening account balances in input order.
+ *
+ * The returned map iterates accounts in the same order as the input rows.
+ */
 class AccountBalancesCsvReader {
     fun read(path: Path): Map<AccountNumber, Account> =
         Files.newBufferedReader(path, StandardCharsets.UTF_8).use(::read)
