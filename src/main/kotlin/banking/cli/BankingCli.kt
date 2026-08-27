@@ -27,40 +27,14 @@ object BankingCli {
         }
 
         val balancesRaw = args[0]
-        val balancesPath = try {
-            Path.of(balancesRaw)
-        } catch (exception: InvalidPathException) {
-            return readError(err, balancesRaw, exception)
-        } catch (exception: SecurityException) {
-            return readError(err, balancesRaw, exception)
-        }
-        val balances = try {
-            AccountBalancesCsvReader().read(balancesPath)
-        } catch (exception: CsvInputException) {
-            return error(err, FAILURE, "Invalid balances CSV '$balancesRaw': ${description(exception)}")
-        } catch (exception: IOException) {
-            return readError(err, balancesRaw, exception)
-        } catch (exception: SecurityException) {
-            return readError(err, balancesRaw, exception)
-        }
+        val balances = readInput(balancesRaw, "balances", err) { path ->
+            AccountBalancesCsvReader().read(path)
+        } ?: return FAILURE
 
         val transactionsRaw = args[1]
-        val transactionsPath = try {
-            Path.of(transactionsRaw)
-        } catch (exception: InvalidPathException) {
-            return readError(err, transactionsRaw, exception)
-        } catch (exception: SecurityException) {
-            return readError(err, transactionsRaw, exception)
-        }
-        val transfers = try {
-            TransfersCsvReader().read(transactionsPath)
-        } catch (exception: CsvInputException) {
-            return error(err, FAILURE, "Invalid transactions CSV '$transactionsRaw': ${description(exception)}")
-        } catch (exception: IOException) {
-            return readError(err, transactionsRaw, exception)
-        } catch (exception: SecurityException) {
-            return readError(err, transactionsRaw, exception)
-        }
+        val transfers = readInput(transactionsRaw, "transactions", err) { path ->
+            TransfersCsvReader().read(path)
+        } ?: return FAILURE
 
         val processor = TransferProcessor(balances)
         val results = processor.processAll(transfers)
@@ -68,6 +42,27 @@ object BankingCli {
 
         out.append(report)
         return SUCCESS
+    }
+
+    private fun <T : Any> readInput(
+        rawPath: String,
+        inputKind: String,
+        err: Appendable,
+        read: (Path) -> T,
+    ): T? = try {
+        read(Path.of(rawPath))
+    } catch (exception: CsvInputException) {
+        error(err, FAILURE, "Invalid $inputKind CSV '$rawPath': ${description(exception)}")
+        null
+    } catch (exception: InvalidPathException) {
+        readError(err, rawPath, exception)
+        null
+    } catch (exception: IOException) {
+        readError(err, rawPath, exception)
+        null
+    } catch (exception: SecurityException) {
+        readError(err, rawPath, exception)
+        null
     }
 
     private fun readError(err: Appendable, rawPath: String, exception: Exception): Int {

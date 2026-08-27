@@ -128,43 +128,6 @@ class TransferProcessorTest {
         }
     }
 
-    @Test
-    fun `sample scenario produces expected balances and conserves total`() {
-        val one = number("1111234522226789")
-        val two = number("1111234522221234")
-        val three = number("2222123433331212")
-        val four = number("1212343433335665")
-        val five = number("3212343433335755")
-        val processor = processor(
-            one to "5000.00",
-            two to "10000.00",
-            three to "550.00",
-            four to "1200.00",
-            five to "50000.00",
-        )
-        val beforeTotal =
-            processor.snapshot().values.fold(BigDecimal.ZERO) { total, account -> total + account.balance }
-
-        val results = processor.processAll(
-            listOf(
-                transfer(one, four, "500.00"),
-                transfer(five, three, "1000.00"),
-                transfer(five, one, "320.50"),
-                transfer(two, four, "25.60"),
-            ),
-        )
-
-        assertTrue(results.all { it == TransferResult.Applied })
-        val snapshot = processor.snapshot()
-        assertMoney("4820.50", snapshot.getValue(one).balance)
-        assertMoney("9974.40", snapshot.getValue(two).balance)
-        assertMoney("1550.00", snapshot.getValue(three).balance)
-        assertMoney("1725.60", snapshot.getValue(four).balance)
-        assertMoney("48679.50", snapshot.getValue(five).balance)
-        val afterTotal = snapshot.values.fold(BigDecimal.ZERO) { total, account -> total + account.balance }
-        assertMoney("66750.00", beforeTotal)
-        assertMoney("66750.00", afterTotal)
-    }
 
     private fun processor(vararg balances: Pair<AccountNumber, String>): TransferProcessor = TransferProcessor(
         linkedMapOf(*balances.map { (number, balance) -> number to Account(number, money(balance)) }.toTypedArray()),

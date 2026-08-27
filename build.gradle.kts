@@ -3,9 +3,6 @@ plugins {
     application
 }
 
-group = "dinar.interview.example"
-version = "1.0-SNAPSHOT"
-
 repositories {
     mavenCentral()
 }
