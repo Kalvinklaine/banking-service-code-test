@@ -15,6 +15,12 @@ object BankingCli {
     private const val USAGE_ERROR = 2
     private const val USAGE = "Usage: banking-service <balances.csv> <transactions.csv>"
 
+    /**
+     * Runs the banking workflow for balances and transactions file paths.
+     *
+     * Returns 0 after processing, 1 for input failures,
+     * and 2 for invalid command-line usage.
+     */
     fun run(args: Array<String>, out: Appendable, err: Appendable): Int {
         if (args.size != 2) {
             return error(err, USAGE_ERROR, USAGE)
